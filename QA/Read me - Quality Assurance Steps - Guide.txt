@@ -1,0 +1,7 @@
+The following steps were taken
+
+- Created automation testing to edit the education of a user
+
+- Tested the web manually and created recordings using jam while also checking the console for errors (api & client-side errors i.e. javascript ,etc)
+
+- Assisted the project manager in Azure Devops by inviting the team members and creating the project
