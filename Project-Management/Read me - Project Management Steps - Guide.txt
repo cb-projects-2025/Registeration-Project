@@ -1,0 +1,5 @@
+The following steps were taken
+
+- Created azure devops project 
+
+- Created a whatsapp group and a link to weekly meetings
