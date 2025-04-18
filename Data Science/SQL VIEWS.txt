@@ -1,0 +1,106 @@
+DROP VIEW IF EXISTS "main"."CORRELATION_STUDY_USER_DEMOGRAPHICS";
+CREATE VIEW CORRELATION_STUDY_USER_DEMOGRAPHICS AS
+SELECT BATCH.NAME AS "BATCH",
+	   batch_id,
+	   TRACK_ID,
+	   TRACK.NAME AS "TRACK",
+	   TRACK.CODE AS "TRACK CODE",
+	   AGE_GROUP_BUCKET,
+	   DATE_OF_BIRTH,
+	   GENDER,
+	   case when  GENDER="Female" then 1 else 0 end "GENDER ENCODED",
+	   Academic_Level,
+	   ACADEMIC_LEVEL_ID,
+	   INSTITUTION_ID,
+	   USER_DEMOGRAPHICS.INSTITUTION_TYPE,
+	   case when USER_DEMOGRAPHICS.INSTITUTION_TYPE="university" then 1 else 0 end "INSTITUTION TYPE ENCODED",
+	   USER_DEMOGRAPHICS.INSTITUTION_NAME,
+	   USER_BATCH.STATUS,
+	   case when  USER_BATCH.STATUS="complete" then 1 else 0 end "STATUS ENCODED"
+FROM USER_BATCH 
+LEFT JOIN BATCH ON BATCH.ID=User_Batch.batch_id
+LEFT JOIN TRACK ON TRACK.ID=User_Batch.TRACK_ID
+LEFT JOIN USER_DEMOGRAPHICS ON USER_DEMOGRAPHICS.USER_ID=USER_BATCH.USER_ID
+
+
+
+DROP VIEW IF EXISTS "main"."CORRELATION_STUDY_USER_PAYMENT";
+CREATE VIEW CORRELATION_STUDY_USER_PAYMENT AS
+select sum(amount) AS AMOUNT,
+	   BATCH_ID,
+	   (select name
+	    from batch 
+		where batch.id=a.batch_id) as "BATCH",
+	    USER_ID,
+	    PAYMENT_TYPE,
+		case when  PAYMENT_TYPE="credit" then 1 else 0 end "PAYMENT TYPE ENCODED", 
+	   (select gender from user where user.id=a.user_id)GENDER,
+	    case when  (select gender from user where user.id=a.user_id)="Female" then 1 else 0 end "GENDER ENCODED",
+	   (select DATE_OF_BIRTH from user where user.id=a.user_id)DATE_OF_BIRTH,
+	   (select ACADEMIC_LEVEL_ID from USER_DEMOGRAPHICS where USER_DEMOGRAPHICS.user_id=a.user_id)ACADEMIC_LEVEL_ID,
+	   (select INSTITUTION_ID from USER_DEMOGRAPHICS where USER_DEMOGRAPHICS.user_id=a.user_id)INSTITUTION_ID 
+from(
+select distinct payment_id ,
+			    batch_id ,
+				(select amount
+				from payment 
+				where payment.id=user_batch.payment_id)amount,
+				USER_ID ,
+				(select type 
+				 from payment_method, payment 
+				 where payment.id=user_batch.payment_id
+				 and payment_method.id=payment.PAYMENT_METHOD_ID)PAYMENT_TYPE
+from user_batch 
+) a 
+group by batch_id,USER_ID
+
+
+
+DROP VIEW IF EXISTS "main"."PAYMENT_V";
+CREATE VIEW PAYMENT_V AS 
+select sum(amount) AS AMOUNT,
+	   batch_id ,
+	   (select name from batch where batch.id=a.batch_id) as "BATCH"
+from(
+select distinct payment_id ,
+			    batch_id ,
+				(select amount from payment where payment.id=user_batch.payment_id)amount
+from user_batch 
+) a 
+group by batch_id
+
+
+
+DROP VIEW IF EXISTS "main"."USERS_PER_BATCH";
+CREATE VIEW USERS_PER_BATCH AS
+SELECT COUNT(DISTINCT USER_ID) as "No. of Users", 
+	   BATCH.NAME AS "BATCH",
+	   batch_id
+FROM USER_BATCH 
+LEFT JOIN BATCH ON BATCH.ID=User_Batch.batch_id
+GROUP BY BATCH.NAME
+
+
+DROP VIEW IF EXISTS "main"."USER_DEMOGRAPHICS";
+CREATE VIEW USER_DEMOGRAPHICS AS 
+SELECT 
+    A.id AS USER_ID,
+    DATE_OF_BIRTH,
+    ROLE,
+    CAST((age / 10) * 10 AS TEXT) || '-' || CAST(((age / 10) * 10 + 9) AS TEXT) AS AGE_GROUP_BUCKET,
+    gender,
+    A.ACADEMIC_LEVEL_ID,
+    B.NAME AS ACADEMIC_LEVEL,
+    INSTITUTION_ID,
+    C.NAME AS INSTITUTION_NAME,
+    C.TYPE AS INSTITUTION_TYPE
+FROM (
+    SELECT *,
+        (strftime('%Y', 'now') - strftime('%Y', DATE_OF_BIRTH)) - 
+        (strftime('%m', 'now') < strftime('%m', DATE_OF_BIRTH) OR 
+        (strftime('%m', 'now') = strftime('%m', DATE_OF_BIRTH) AND strftime('%d', 'now') < strftime('%d', DATE_OF_BIRTH))) AS age
+    FROM "USER"
+) AS A
+LEFT JOIN ACADEMIC_LEVEL B ON A.ACADEMIC_LEVEL_ID = B.ID
+LEFT JOIN Institution C ON A.INSTITUTION_ID = C.ID
+WHERE A.ROLE = "User"

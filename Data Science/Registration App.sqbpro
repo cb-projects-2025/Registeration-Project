@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="Registration App.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="6513"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="Academic_Level" custom_title="0" dock_id="1" table="4,14:mainAcademic_Level"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011e00ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1"></sql><sql name="Edit View CORRELATION_STUDY_USER_PAYMENT*">DROP VIEW IF EXISTS &quot;main&quot;.&quot;CORRELATION_STUDY_USER_PAYMENT&quot;;
+CREATE VIEW CORRELATION_STUDY_USER_PAYMENT AS
+select sum(amount) AS AMOUNT,
+	   BATCH_ID,
+	   (select name
+	    from batch 
+		where batch.id=a.batch_id) as &quot;BATCH&quot;,
+	    USER_ID,
+	    PAYMENT_TYPE,
+		case when  PAYMENT_TYPE=&quot;credit&quot; then 1 else 0 end &quot;PAYMENT TYPE ENCODED&quot;, 
+	   (select gender from user where user.id=a.user_id)GENDER,
+	    case when  (select gender from user where user.id=a.user_id)=&quot;Female&quot; then 1 else 0 end &quot;GENDER ENCODED&quot;,
+	   (select DATE_OF_BIRTH from user where user.id=a.user_id)DATE_OF_BIRTH,
+	   (select ACADEMIC_LEVEL_ID from USER_DEMOGRAPHICS where USER_DEMOGRAPHICS.user_id=a.user_id)ACADEMIC_LEVEL_ID,
+	   (select INSTITUTION_ID from USER_DEMOGRAPHICS where USER_DEMOGRAPHICS.user_id=a.user_id)INSTITUTION_ID 
+from(
+select distinct payment_id ,
+			    batch_id ,
+				(select amount
+				from payment 
+				where payment.id=user_batch.payment_id)amount,
+				USER_ID ,
+				(select type 
+				 from payment_method, payment 
+				 where payment.id=user_batch.payment_id
+				 and payment_method.id=payment.PAYMENT_METHOD_ID)PAYMENT_TYPE
+from user_batch 
+) a 
+group by batch_id,USER_ID</sql><sql name="Edit View CORRELATION_STUDY_USER_DEMOGRAPHICS*">DROP VIEW IF EXISTS &quot;main&quot;.&quot;CORRELATION_STUDY_USER_DEMOGRAPHICS&quot;;
+CREATE VIEW CORRELATION_STUDY_USER_DEMOGRAPHICS AS
+SELECT BATCH.NAME AS &quot;BATCH&quot;,
+	   batch_id,
+	   TRACK_ID,
+	   TRACK.NAME AS &quot;TRACK&quot;,
+	   TRACK.CODE AS &quot;TRACK CODE&quot;,
+	   AGE_GROUP_BUCKET,
+	   DATE_OF_BIRTH,
+	   GENDER,
+	   case when  GENDER=&quot;Female&quot; then 1 else 0 end &quot;GENDER ENCODED&quot;,
+	   Academic_Level,
+	   ACADEMIC_LEVEL_ID,
+	   INSTITUTION_ID,
+	   USER_DEMOGRAPHICS.INSTITUTION_TYPE,
+	   case when USER_DEMOGRAPHICS.INSTITUTION_TYPE=&quot;university&quot; then 1 else 0 end &quot;INSTITUTION TYPE ENCODED&quot;,
+	   USER_DEMOGRAPHICS.INSTITUTION_NAME,
+	   USER_BATCH.STATUS,
+	   case when  USER_BATCH.STATUS=&quot;complete&quot; then 1 else 0 end &quot;STATUS ENCODED&quot;
+FROM USER_BATCH 
+LEFT JOIN BATCH ON BATCH.ID=User_Batch.batch_id
+LEFT JOIN TRACK ON TRACK.ID=User_Batch.TRACK_ID
+LEFT JOIN USER_DEMOGRAPHICS ON USER_DEMOGRAPHICS.USER_ID=USER_BATCH.USER_ID</sql><current_tab id="1"/></tab_sql></sqlb_project>

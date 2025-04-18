@@ -1,0 +1,23 @@
+The following steps were taken
+
+- ERD was first obtained from the web team
+
+- Data was generated randomly through faker in python 
+
+- Data was cleaned and checked for nulls/missing values and for alignment with relationships
+
+- SQL Lite Database was created
+
+- Data was exported from excel to SQL Lite through python
+
+- Views were created in order to analyze the data for correlation
+
+- Data analysis was conducted on the views in python through pandas
+
+- Power BI was used to create the data visualisation (pdf sample is shown)
+
+- Then , views were created to create a summary dashboard in streamlit in python
+
+- A sample summary dashboard was created in streamlit
+
+- Please check the powerpoint and dashboards presented in pdf format
